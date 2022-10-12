@@ -23,7 +23,7 @@ Computer specification:
 
 # How to run
 First of all, python and the plugins should be installed. In the JupyterNotebook file, the details of this code is explained.
-In order to make a test with the code, we need to open A-PoD_2D.ipynb file. The important parameters are the psf and filename. The two example files of a PSF and an image are included in this account. We can simply execute the code in the jupyter notebook file line by line.
+In order to make a test with the code, we need to open A-PoD_2D.ipynb file. The important parameters are the psf and filename. The two example files of a PSF and an image are included in this account. We can simply execute the code in the jupyter notebook file line by line. The result file will be generated as in the new folder, "/deconvolved". The deconvolution result file of "HEKCell_fourier5x.tif" is included in the folder. ("Deconvolved_HEKCell_fourier5xDenoised-1.tif")
 
 The spatial frequencies of PSF and image should be matched. The PSF file in this example was generated using PSF generator plugin in ImageJ. Considering the experimental conditions, we can precisely define the PSFs.
 
