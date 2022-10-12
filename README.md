@@ -16,6 +16,10 @@ opencv
 pandas
 
 
+Computer specification: 
+1. Xeon W-2145 CPU, 64 GB RAM, and NVIDIA Quadro P4000 GPU
+2. Intel Core i7-9700 CPU, 16 GB RAM, and NVIDIA GeForce GTX 1660 Ti
+
 
 # How to run
 First of all, python and the plugins should be installed. In the JupyterNotebook file, the details of this code is explained.
