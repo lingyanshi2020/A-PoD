@@ -1,20 +1,16 @@
 # A-PoD
+reference article: https://www.nature.com/articles/s41592-023-01779-1
 
 A-PoD is a deconvolution program to convert a diffraction limited microscopy image to a super-resolved image. This code is written in Python 3.8.7c1 with following plugins. 
 
 
+
 Tensorflow-gpu 2.6.0
-
 Numpy 1.20.3
-
 Pillow
-
 Sci-kit image
-
 opencv
-
 pandas
-
 
 Computer specification: 
 1. Xeon W-2145 CPU, 64 GB RAM, and NVIDIA Quadro P4000 GPU
