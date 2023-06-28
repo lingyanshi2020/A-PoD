@@ -33,3 +33,5 @@ GPU memory size is the maximum GPU memory. If GPU has 8GB RAM, then the praramet
 The last parameter is reblurring parameter. After deconvolution, to avoid overfitting, Gaussian filtering will be done. The parameter means sigma of the Gaussian filter. To preserve raw deconvolution results, we can set the parameter as 0.
 
 To deconvolve SRS images, we need two PSFs (pump beam and Stokes beam). For the purpose, A-PoD_GUI can open two PSFs. 
+
+The result will be exported in the folder, "/deconvolved".
