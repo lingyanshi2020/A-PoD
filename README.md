@@ -1,11 +1,11 @@
 # A-PoD
 
-A-PoD is a deconvolution program to convert a diffraction limited microscopy image to a super-resolved image. This code is written in Python 3.6.0 with following plugins. 
+A-PoD is a deconvolution program to convert a diffraction limited microscopy image to a super-resolved image. This code is written in Python 3.8.7c1 with following plugins. 
 
 
-Tensorflow-gpu 1.15
+Tensorflow-gpu 2.6.0
 
-Numpy 1.17.3
+Numpy 1.20.3
 
 Pillow
 
@@ -19,19 +19,17 @@ pandas
 Computer specification: 
 1. Xeon W-2145 CPU, 64 GB RAM, and NVIDIA Quadro P4000 GPU
 2. Intel Core i7-9700 CPU, 16 GB RAM, and NVIDIA GeForce GTX 1660 Ti
+3. Intel Xeon Gold 5317 CPU, 128 GB RAM, and NVIDIA RTX A4500
 
 
 # How to run
-First of all, python and the plugins should be installed. In the JupyterNotebook file, the details of this code is explained.
-In order to make a test with the code, we need to open A-PoD_2D.ipynb file. The important parameters are the psf and filename. The two example files of a PSF and an image are included in this account. We can simply execute the code in the jupyter notebook file line by line. The result file will be generated as in the new folder, "/deconvolved". The deconvolution result file of "HEKCell_fourier5x.tif" is included in the folder. ("Deconvolved_HEKCell_fourier5xDenoised-1.tif")
+Python and the plugins should be installed. After running the code (A-PoD_GUI.py or A-PoD_GUI_Single_PSF.py), the files of PSF and image should be loaded.
 
-The spatial frequencies of PSF and image should be matched. The PSF file in this example was generated using PSF generator plugin in ImageJ. Considering the experimental conditions, we can precisely define the PSFs.
+For demonstration of the program, A-PoD_GUI_Single_PSF.py should be run. (Image file: HEKCell_4x.tif, PSF file: PSF_HEK_4x.tif)
+The parameters can be adjusted depending on computational conditions. For example, the number of maximum address can be increased, but it needs more calculation time. 
+If memory size is not enough, the number of spot can be reduced. "number of spot" is maximum number of spots that are calculated in a single step.
+Learning rate is a parameter for Adam solver. This parameter is proportional constant to calculate the real learning rate based on PSF size. (ex. Learning rate = 0.75, then real learning rate = 0.75*PSF_size)
+GPU memory size is the maximum GPU memory. If GPU has 8GB RAM, then the prarameter can be 8192. Then, automatically, the program utilize 90% of maximum RAM (7373 MB).
+The last parameter is reblurring parameter. After deconvolution, to avoid overfitting, Gaussian filtering will be done. The parameter means sigma of the Gaussian filter. To preserve raw deconvolution results, we can set the parameter as 0.
 
-Additional parameters
-1) vir_num_scaling_factor: parameter to increase or decrease the number of total virtual emitters.
-2) background_threshold: normally, it is 0. But, if we need to adjust offset value for the image, we can adjust this parameter.
-3) numbmaxaddr: maximum number of emitters that this program handle in a single calculation. Based on this number, the group of every virtual emitter is separated to several small groups. This number is the high limit of the number of each small group.
-4) signal_bg_ratio: This ratio represent the intensity of each single virtual emitter. If this number is 1, the sum of total virtual emitter intensity is same with total intensity of the image. But, considering the noise, offset, and other effects, the number is set below 1, around 0.8~0.9.
-5) iter_criterion: this number is related to the convergence of Adam solver. Calculation with low iter_criterion generates more precise result, but the calculation needs more time.
-
-
+To deconvolve SRS images, we need two PSFs (pump beam and Stokes beam). For the purpose, A-PoD_GUI can open two PSFs. 
