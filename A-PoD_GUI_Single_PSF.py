@@ -53,7 +53,7 @@ def PSF1():
 
 def inputImage():
     global inputImagee
-    inputImagee = filedialog.askopenfilename(filetype=(("tif files", "*.tif"), ("all files", "*.*")))
+    inputImagee = filedialog.askopenfilename(filetypes=(("tif files", "*.tif"), ("all files", "*.*")))
     filee = os.path.split(inputImagee)
     global fileaddr
     fileaddr = filee[0]+'/'
