@@ -105,7 +105,7 @@ def run():
     
         OTF_filt = np.zeros(fftimage.shape)
     
-        pos_addr = np.where(np.absolute(fftpsf) > np.max(np.absolute(fftpsf))*0.95)
+        pos_addr = np.where(np.absolute(fftpsf) > np.max(np.absolute(fftpsf))*0.9999)
         #idx = np.where(np.absolute(fftpsf) == np.max(np.absolute(fftpsf)))
         
         #OTF_filt[idx[0][0]-np.int(psf_size[0][0]):idx[0][0]+np.int(psf_size[0][0]), idx[1][0]-np.int(psf_size[1][0]):idx[1][0]+np.int(psf_size[1][0])] = 1
