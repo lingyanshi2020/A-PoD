@@ -372,7 +372,7 @@ def run():
 
     def gradgenfun(re_image, imsize, temp_addr_x, temp_addr_y, psf, sizeaddr, imagefilter):
     
-        grad_step = tf.constant(1, dtype=tf.int32)
+        grad_step = tf.constant(np.round(psf_size/2), dtype=tf.int32)
     
         temp_result =  1000*tf.math.subtract(re_image, convimggen(imsize, temp_addr_x, temp_addr_y, psf, sizeaddr))
     
