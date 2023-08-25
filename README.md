@@ -31,3 +31,18 @@ The last parameter is reblurring parameter. After deconvolution, to avoid overfi
 To deconvolve SRS images, we need two PSFs (pump beam and Stokes beam). For the purpose, A-PoD_GUI can open two PSFs. 
 
 The result will be exported in the folder, "/deconvolved".
+
+# parameter for the test image (08/25/2023)
+
+number of maximum address: 35000
+Number of spot: 50000000
+Learning rate: 1
+Reblurring: 0
+
+# Update (08/25/2023)
+A function to exclude low frequency background signal is added. Due to the change, time to process is decreased. 
+
+If you have any qustions or suggestions, please send email to the address below.
+
+hojang@ucsd.edu
+
