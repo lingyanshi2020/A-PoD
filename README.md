@@ -42,6 +42,9 @@ Reblurring: 0
 # Update (08/25/2023)
 A function to exclude low frequency background signal is added. Due to the change, time to process is decreased. 
 
+# Update (09/14/2023)
+Gradient function is simplified. 
+
 If you have any qustions or suggestions, please send email to the address below.
 
 hojang@ucsd.edu
