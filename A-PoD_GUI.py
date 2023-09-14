@@ -378,51 +378,34 @@ def run():
 
     def gradgenfun(re_image, imsize, temp_addr_x, temp_addr_y, psf, sizeaddr, imagefilter):
     
-        grad_step = tf.constant(np.round(psf_size/2), dtype=tf.int32)
-    
-        temp_result =  1000*tf.math.subtract(re_image, convimggen(imsize, temp_addr_x, temp_addr_y, psf, sizeaddr))
-    
-        result_x_1_1= tf.roll(temp_result, shift=[1, 0], axis=[0, 1])
-        result_x_1_2= tf.roll(temp_result, shift=[grad_step, 0], axis=[0, 1])
-        result_x_1_3= tf.roll(temp_result, shift=[2*grad_step, 0], axis=[0, 1])
-        result_x_1_4= tf.roll(temp_result, shift=[3*grad_step, 0], axis=[0, 1])
-        result_x_2_1= tf.roll(temp_result, shift=[-1, 0], axis=[0, 1])
-        result_x_2_2= tf.roll(temp_result, shift=[-1*grad_step, 0], axis=[0, 1])
-        result_x_2_3= tf.roll(temp_result, shift=[-2*grad_step, 0], axis=[0, 1])
-        result_x_2_4= tf.roll(temp_result, shift=[-3*grad_step, 0], axis=[0, 1])
-    
-    
-        result_x_1 = (result_x_1_1 + result_x_1_2 + result_x_1_3 + result_x_1_4)
-        result_x_2 = (result_x_2_1 + result_x_2_2 + result_x_2_3 + result_x_2_4)
-    
-        result_y_1_1= tf.roll(temp_result, shift=[0, 1], axis=[0, 1])
-        result_y_1_2= tf.roll(temp_result, shift=[0, grad_step], axis=[0, 1])
-        result_y_1_3= tf.roll(temp_result, shift=[0, 2*grad_step], axis=[0, 1])
-        result_y_1_4= tf.roll(temp_result, shift=[0, 3*grad_step], axis=[0, 1])
-        result_y_2_1= tf.roll(temp_result, shift=[0, -1], axis=[0, 1])
-        result_y_2_2= tf.roll(temp_result, shift=[0, -1*grad_step], axis=[0, 1])
-        result_y_2_3= tf.roll(temp_result, shift=[0, -2*grad_step], axis=[0, 1])
-        result_y_2_4= tf.roll(temp_result, shift=[0, -3*grad_step], axis=[0, 1])
-    
-    
-        result_y_1 = (result_y_1_1 + result_y_1_2 + result_y_1_3 + result_y_1_4)
-        result_y_2 = (result_y_2_1 + result_y_2_2 + result_y_2_3 + result_y_2_4)
-    
+        grad_step = tf.constant(1, dtype=tf.int32)
+
+        temp_result =  -tf.square(tf.math.subtract(re_image, convimggen(imsize, temp_addr_x, temp_addr_y, psf, sizeaddr)))
+        
+        neg_addr = tf.where(tf.greater(temp_result,0))
+        
+        temp_result = tf.reshape(temp_result, [1, imsize[0], imsize[1], 1])
+        result_x_1, result_y_1 = tf.image.image_gradients(temp_result - 1E6*tf.cast(tf.size(neg_addr), tf.float32))
+
+        result_x_1 = tf.reshape(result_x_1, [imsize[0], imsize[1]])
+        result_y_1 = tf.reshape(result_y_1, [imsize[0], imsize[1]])
+
+        
         temp_addr_x = tf.where(temp_addr_x > imsize[0]-1, tf.constant(0, dtype=tf.float32), temp_addr_x)
         temp_addr_x = tf.where(temp_addr_x < 0, tf.constant(imsize[0]-1, dtype=tf.float32), temp_addr_x)
         temp_addr_y = tf.where(temp_addr_y > imsize[1]-1, tf.constant(0, dtype=tf.float32), temp_addr_y)
         temp_addr_y = tf.where(temp_addr_y < 0, tf.constant(imsize[1]-1, dtype=tf.float32), temp_addr_y)
     
-        result_img_x = tf.math.subtract(result_x_1, result_x_2)
+        result_img_x = result_x_1
         result_x = tf.gather_nd(result_img_x, tf.cast(tf.concat([temp_addr_x, temp_addr_y], 1), dtype = tf.int32))
         result_x = tf.reshape(tf.cast(result_x, dtype=tf.float32), [sizeaddr, 1])
     
-        result_img_y = tf.math.subtract(result_y_1, result_y_2)
+        result_img_y = result_y_1
         result_y = tf.gather_nd(result_img_y, tf.cast(tf.concat([temp_addr_x, temp_addr_y], 1), dtype = tf.int32))
         result_y = tf.reshape(tf.cast(result_y, dtype=tf.float32), [sizeaddr, 1])
     
         return result_x, result_y
-
+        
     def clearall():
         all = [var for var in globals() if var[0] != "_"]
     
