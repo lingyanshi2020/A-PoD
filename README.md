@@ -36,7 +36,7 @@ The result will be exported in the folder, "/deconvolved".
 
 number of maximum address: 35000
 Number of spot: 50000000
-Learning rate: 1
+Learning rate: 0.1
 Reblurring: 0
 
 # Update (08/25/2023)
