@@ -639,7 +639,7 @@ def run():
         
         diff_sum = tf.constant(1, dtype=tf.float32)
         
-        iterthrval = intratio*addrsize*1e-6
+        iterthrval = intratio*addrsize*1e-4
             
         def cond(j, finalres_x, finalres_y, m_x_new, v_x_new, m_y_new, v_y_new, diff_sum, extrapolnum):
             
