@@ -106,8 +106,8 @@ def run():
         OTF_filt = np.fft.fftshift(np.zeros(fftimage.shape))
     
         #pos_addr = np.where(np.absolute(fftpsf) > np.max(np.absolute(fftpsf))*0.9)
-        #pos_addr = np.where(dist_image < 0.2*psf_size) # for TNBC
-        pos_addr = np.where(dist_image < 0.2*psf_size) # for HEK Cell
+        pos_addr = np.where(dist_image < 0.0002*psf_size) # for TNBC
+        #pos_addr = np.where(dist_image < 1) # for HEK Cell
 
         #OTF_filt[pos_addr] = 1
         #addre[0] = pos_addr[0]
@@ -119,22 +119,23 @@ def run():
         newimage = np.fft.ifft2(newfftimage, s=imsize)
     
         return np.real(newimage)
-    
+
     def lp_filt_2(image, psf, imsize):
     
         fftpsf = np.fft.fft2(psf, s=imsize)
-        fftimage = np.fft.fft2(image, s=imsize)
+        fftimage = np.fft.fftshift(np.fft.fft2(image, s=imsize))
     
-        OTF_filt = np.zeros(fftimage.shape)
+        OTF_filt = np.fft.fftshift(np.zeros(fftimage.shape))
     
-        pos_addr = np.where(np.absolute(fftpsf) > np.max(np.absolute(fftpsf))*0.1)
+        pos_addr = np.where(dist_image < 2*psf_size) # for HEK Cell
+
         OTF_filt[pos_addr] = 1
-    
-        newfftimage = OTF_filt * fftimage
+        
+        newfftimage = np.fft.ifftshift(OTF_filt * fftimage)
     
         newimage = np.fft.ifft2(newfftimage, s=imsize)
     
-        return newimage
+        return np.real(newimage)
 
 
     def det_offset(image, psf, imsize):
@@ -157,8 +158,9 @@ def run():
     def SNR_cal(a, psf, imsize): 
     
         img_noise = hp_filt(a, psf, imsize)
-        img_signal = lp_filt(a, psf, imsize)
-        SNR = np.mean(np.abs(img_signal))/np.std(img_noise)
+        img_signal = lp_filt_2(a, psf, imsize)
+        #SNR = (np.mean(np.abs(img_signal))-np.mean(np.abs(img_noise)))/np.std(img_noise)
+        SNR = (np.std(img_signal))/np.std(img_noise)
     
         return SNR
 
@@ -202,18 +204,19 @@ def run():
     def hp_filt(image, psf, imsize):
     
         fftpsf = np.fft.fft2(psf, s=imsize)
-        fftimage = np.fft.fft2(image, s=imsize)
+        fftimage = np.fft.fftshift(np.fft.fft2(image, s=imsize))
     
-        OTF_filt = np.ones(fftimage.shape)
+        OTF_filt = np.fft.fftshift(np.zeros(fftimage.shape))
     
-        pos_addr = np.where(np.absolute(fftpsf) > np.max(np.absolute(fftpsf))*0.001)
-        OTF_filt[pos_addr] = 0
-    
-        newfftimage = OTF_filt * fftimage
+        pos_addr = np.where(dist_image > 2*psf_size) # for HEK Cell
+
+        OTF_filt[pos_addr] = 1
+        
+        newfftimage = np.fft.ifftshift(OTF_filt * fftimage)
     
         newimage = np.fft.ifft2(newfftimage, s=imsize)
     
-        return newimage
+        return np.real(newimage)
 
 
 
@@ -285,7 +288,8 @@ def run():
         temp_image = tf.reshape(temp_image, [1, imsize[0], imsize[1], 1])
         temp_convimg = tf.nn.conv2d(temp_image, temp_psf, strides=[1, 1, 1, 1], padding='SAME')
     
-        re_temp_convimg = tf.math.reduce_sum(temp_psf)*tf.math.divide(tf.reshape(temp_convimg, [imsize[0], imsize[1]]),tf.math.reduce_sum(temp_convimg))*sizeaddr
+        #re_temp_convimg = tf.math.reduce_sum(temp_psf)*tf.math.divide(tf.reshape(temp_convimg, [imsize[0], imsize[1]]),tf.math.reduce_sum(temp_convimg))*sizeaddr
+        re_temp_convimg = tf.reshape(temp_convimg, [imsize[0], imsize[1]])
     
         del [[temp_psf, temp_image, temp_convimg]]
     
@@ -370,32 +374,67 @@ def run():
                             
     
 
+    def gaussian_blur(img, kernel_size, sigma):
+        def gauss_kernel(kernel_size, sigma):
+            ax = tf.range(-kernel_size // 2 + 1.0, kernel_size // 2 + 1.0)
+            xx, yy = tf.meshgrid(ax, ax)
+            kernel = tf.exp(-(xx ** 2 + yy ** 2) / (2.0 * sigma ** 2))
+            kernel = kernel / tf.reduce_sum(kernel)
+            return kernel
 
+        g_kernel = gauss_kernel(kernel_size, sigma)
+        g_kernel = tf.reshape(g_kernel, [kernel_size, kernel_size, 1, 1])
+
+        img = tf.reshape(img, [1, imsize[0], imsize[1], 1])
+        img = tf.nn.conv2d(img, g_kernel, [1, 1, 1, 1], padding='SAME')
+
+        #img = tf.reshape(img, [imsize[0], imsize[1]])
+
+        return img
+     
+    
     def gradgenfun(re_image, imsize, temp_addr_x, temp_addr_y, psf, sizeaddr, imagefilter):
     
         grad_step = tf.constant(1, dtype=tf.int32)
-
-        temp_result =  -tf.square(tf.math.subtract(re_image, convimggen(imsize, temp_addr_x, temp_addr_y, psf, sizeaddr)))
-        
-        neg_addr = tf.where(tf.greater(temp_result,0))
-        
-        temp_result = tf.reshape(temp_result, [1, imsize[0], imsize[1], 1])
-        result_x_1, result_y_1 = tf.image.image_gradients(temp_result - 1E6*tf.cast(tf.size(neg_addr), tf.float32))
-
-        result_x_1 = tf.reshape(result_x_1, [imsize[0], imsize[1]])
-        result_y_1 = tf.reshape(result_y_1, [imsize[0], imsize[1]])
-
-        
+    
+        temp_result =  1000*tf.math.subtract(re_image, convimggen(imsize, temp_addr_x, temp_addr_y, psf, sizeaddr))
+    
+        result_x_1_1= tf.roll(temp_result, shift=[0, 1, 0], axis=[0, 0, 1])
+        result_x_1_2= tf.roll(temp_result, shift=[0, grad_step, 0], axis=[0, 0, 1])
+        result_x_1_3= tf.roll(temp_result, shift=[0, 2*grad_step, 0], axis=[0, 0, 1])
+        result_x_1_4= tf.roll(temp_result, shift=[0, 3*grad_step, 0], axis=[0, 0, 1])
+        result_x_2_1= tf.roll(temp_result, shift=[0, -1, 0], axis=[0, 0, 1])
+        result_x_2_2= tf.roll(temp_result, shift=[0, -1*grad_step, 0], axis=[0, 0, 1])
+        result_x_2_3= tf.roll(temp_result, shift=[0, -2*grad_step, 0], axis=[0, 0, 1])
+        result_x_2_4= tf.roll(temp_result, shift=[0, -3*grad_step, 0], axis=[0, 0, 1])
+    
+    
+        result_x_1 = (result_x_1_1 + result_x_1_2 + result_x_1_3 + result_x_1_4)
+        result_x_2 = (result_x_2_1 + result_x_2_2 + result_x_2_3 + result_x_2_4)
+    
+        result_y_1_1= tf.roll(temp_result, shift=[0, 0, 1], axis=[0, 0, 1])
+        result_y_1_2= tf.roll(temp_result, shift=[0, 0, grad_step], axis=[0, 0, 1])
+        result_y_1_3= tf.roll(temp_result, shift=[0, 0, 2*grad_step], axis=[0, 0, 1])
+        result_y_1_4= tf.roll(temp_result, shift=[0, 0, 3*grad_step], axis=[0, 0, 1])
+        result_y_2_1= tf.roll(temp_result, shift=[0, 0, -1], axis=[0, 0, 1])
+        result_y_2_2= tf.roll(temp_result, shift=[0, 0, -1*grad_step], axis=[0, 0, 1])
+        result_y_2_3= tf.roll(temp_result, shift=[0, 0, -2*grad_step], axis=[0, 0, 1])
+        result_y_2_4= tf.roll(temp_result, shift=[0, 0, -3*grad_step], axis=[0, 0, 1])
+    
+    
+        result_y_1 = (result_y_1_1 + result_y_1_2 + result_y_1_3 + result_y_1_4)
+        result_y_2 = (result_y_2_1 + result_y_2_2 + result_y_2_3 + result_y_2_4)
+    
         temp_addr_x = tf.where(temp_addr_x > imsize[0]-1, tf.constant(0, dtype=tf.float32), temp_addr_x)
         temp_addr_x = tf.where(temp_addr_x < 0, tf.constant(imsize[0]-1, dtype=tf.float32), temp_addr_x)
         temp_addr_y = tf.where(temp_addr_y > imsize[1]-1, tf.constant(0, dtype=tf.float32), temp_addr_y)
         temp_addr_y = tf.where(temp_addr_y < 0, tf.constant(imsize[1]-1, dtype=tf.float32), temp_addr_y)
     
-        result_img_x = result_x_1
+        result_img_x = tf.math.subtract(result_x_1, result_x_2)
         result_x = tf.gather_nd(result_img_x, tf.cast(tf.concat([temp_addr_x, temp_addr_y], 1), dtype = tf.int32))
         result_x = tf.reshape(tf.cast(result_x, dtype=tf.float32), [sizeaddr, 1])
     
-        result_img_y = result_y_1
+        result_img_y = tf.math.subtract(result_y_1, result_y_2)
         result_y = tf.gather_nd(result_img_y, tf.cast(tf.concat([temp_addr_x, temp_addr_y], 1), dtype = tf.int32))
         result_y = tf.reshape(tf.cast(result_y, dtype=tf.float32), [sizeaddr, 1])
     
@@ -430,8 +469,9 @@ def run():
     #####################
 
     ex_psf = io.imread(PSF_1)
-    
-    psf = posimage(ex_psf)
+    #em_psf = io.imread(PSF_2)
+
+    psf = ex_psf
 
     del [[ex_psf]]
 
@@ -439,9 +479,11 @@ def run():
     psf = psf/np.sum(psf)
     new_psf, psf_size = psf_crop(psf)
 
-    psf_ratio = np.sum(new_psf)
+    psf_ratio = np.sum(new_psf)/np.sum(psf)
 
     big_psf = new_psf
+
+    psf_ratio = np.sum(psf_ratio)/np.sum(new_psf)
 
     big_psf = big_psf/np.sum(big_psf)
 
@@ -472,10 +514,17 @@ def run():
     #bground = np.min(image) + th_value*np.std(image)
     bground = 0
 
+    bgimage = np.abs(lp_filt(image, big_psf, image.shape))
     #bgimage = np.abs(lp_filt(image, big_psf, image.shape) - 0.5*np.std(image))
-    bgimage = np.abs(lp_filt(image, big_psf, image.shape)*(np.mean(image)- 3*np.std(image))/np.mean(image)) #for TNBC
+    #bgimage = bgimage*(np.mean(bgimage)- 2*np.std(bgimage))/np.mean(bgimage) #for TNBC
     #bgimage = np.abs(lp_filt(image, big_psf, image.shape)*(np.mean(image)- 0.5*np.std(image))/np.mean(image)) #for HEK
+    #bgimage = 0.9*np.abs(lp_filt(image, big_psf, image.shape)) #for HEK
     #bgimage = gaussian_filter(image, [psf_size*5, psf_size*5])*(np.mean(image)- 3*np.std(image))/np.mean(image)
+    #bgimage = np.zeros(image.shape) + np.min(np.abs(lp_filt(image, big_psf, image.shape)))
+    bgimage = bgimage - 1*np.std(image)
+    px_ratio = np.size(np.where(image>np.mean(bgimage)+3*np.std(image)))/np.size(image)
+    
+
     image = posimage(image-bgimage)
     sum_val_image = np.sum(image)
     
@@ -485,11 +534,11 @@ def run():
 
     if np.min(image)>0:
 
-        thrval = np.min(image) + 3*np.std(image)
+        thrval = np.min(image) + 2*np.std(lp_filt_2(image, big_psf, image.shape))
 
     else:
 
-        thrval = 0 + 3*np.std(image)
+        thrval = 0 + 2*np.std(lp_filt_2(image, big_psf, image.shape))
 
     addr = np.where(image > thrval)
     [numberofaxes, tempsize] = np.shape(addr)
@@ -519,11 +568,19 @@ def run():
     intratio = np.sum(np.abs(posimage(image)))/iternumb/addrsize
     
     big_psf = big_psf/np.sum(big_psf)
+
+
+    init_SNR = SNR_cal(image, big_psf, image.shape)
+
+    SNR_ratio = init_SNR/(init_SNR+2)
+    #px_ratio = np.size(addr)/np.size(image)
     
     #real_psf = psf_ratio*big_psf*intratio
     #big_psf = psf_ratio*big_psf*intratio
-    real_psf = 0.5*big_psf*intratio
-    big_psf = 0.5*big_psf*intratio
+    real_psf = 0.5*SNR_ratio*big_psf*intratio
+    big_psf = 0.5*SNR_ratio*big_psf*intratio
+    #real_psf = psf_ratio*px_ratio*SNR_ratio*big_psf*intratio
+    #big_psf = psf_ratio*px_ratio*SNR_ratio*big_psf*intratio
     
     image_org = image
     io.imsave(filename+'_temp.tif', np.float32(image))
@@ -633,7 +690,7 @@ def run():
         
         diff_sum = tf.constant(1, dtype=tf.float32)
         
-        iterthrval = intratio*addrsize*1e-4
+        iterthrval = intratio*addrsize*1e-6
             
         def cond(j, finalres_x, finalres_y, m_x_new, v_x_new, m_y_new, v_y_new, diff_sum, extrapolnum):
             
@@ -682,8 +739,7 @@ def run():
         
         io.imsave('temp_imresidue.tif', np.float32(image))
         io.imsave('temp_imresidue_pos.tif', posimage(np.float32(image)))
-
-        
+                        
         io.imsave('temp_imsave.tif', np.float32(rimage+simage))
         
         
@@ -724,7 +780,6 @@ def run():
     del [[image, simage, rimage, jj, iternumb, thrval, totaladdrsize, addr, addr_x, addr_y]]
     
     gc.collect()
-    
 
 
 
