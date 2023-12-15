@@ -34,16 +34,19 @@ The result will be exported in the folder, "/deconvolved".
 
 # parameter for the test image (08/25/2023)
 
-number of maximum address: 35000
-Number of spot: 50000000
-Learning rate: 0.1
-Reblurring: 0
+number of maximum address: 1000
+Number of spot: 5000000
+Learning rate: 0.5
+Reblurring: 2
 
 # Update (08/25/2023)
 A function to exclude low frequency background signal is added. Due to the change, time to process is decreased. 
 
 # Update (09/14/2023)
 Gradient function is simplified. 
+
+# Update (12/14/2023)
+Gradient function and background thresholding method are changed. 
 
 If you have any qustions or suggestions, please send email to the address below.
 
