@@ -48,6 +48,9 @@ Gradient function is simplified.
 # Update (12/14/2023)
 Gradient function and background thresholding method are changed. 
 
+# Update (09/22/2024)
+Raw image files were uploaded. (Retina tissue and two beads images) 
+
 If you have any qustions or suggestions, please send email to the address below.
 
 hojang@ucsd.edu
