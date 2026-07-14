@@ -757,41 +757,41 @@ inputImagebutton = Button(root, text="Original image",padx=70, pady=10, command=
 inputImagebutton.grid(row=15, column=45)
 
 runbutton = Button(root, text="RUN",padx=50, pady=20, command=run)
-runbutton.grid(row=85,column=45)
+runbutton.grid(row=100,column=45)
 
 global num1
 num1 = StringVar()
-numbmaxim = Entry(root, textvariable= num1 ,width=30).grid(row=25, column=45)
+numbmaxim = Entry(root, textvariable= num1 ,width=30).grid(row=20, column=45)
 textfornumaxin = Label(root, text="Number of maximum address (ex: 350)")
-textfornumaxin.grid(row=23, column=45)
+textfornumaxin.grid(row=18, column=45)
 
 global num2
 num2 = StringVar()
-numbofspot = Entry(root, textvariable= num2, width= 30).grid(row=29, column= 45)
+numbofspot = Entry(root, textvariable= num2, width= 30).grid(row=24, column= 45)
 textfornumspot = Label(root, text="Number of spot (ex: 50000000)")
 textfornumspot.grid(row=22, column=45)
 
 global num31
 num31 = StringVar()
-learn_rate_x = Entry(root, textvariable= num31, width= 30).grid(row= 33, column= 45)
+learn_rate_x = Entry(root, textvariable= num31, width= 30).grid(row=28, column= 45)
 textforrate = Label(root, text="Learning rate_x (recommendation: 0.35)")
 textforrate.grid(row=26, column=45)
 
 global num32
 num32 = StringVar()
-learn_rate_z = Entry(root, textvariable= num32, width= 30).grid(row= 37, column= 45)
+learn_rate_z = Entry(root, textvariable= num32, width= 30).grid(row=32, column= 45)
 textforrate = Label(root, text="Learning rate_z (recommendation: 0.35)")
 textforrate.grid(row=30, column=45)
 
 global num4
 num4 = StringVar()
-threshold_value = Entry(root, textvariable= num4, width= 30).grid(row= 41, column= 45)
+threshold_value = Entry(root, textvariable= num4, width= 30).grid(row=36, column= 45)
 textforthreshold = Label(root, text="BG threshold (example: 1500 (min intensity))")
 textforthreshold.grid(row=34, column=45)
 
 global num5
 num5 = StringVar()
-reblur_value = Entry(root, textvariable= num5, width= 30).grid(row= 45, column= 45)
+reblur_value = Entry(root, textvariable= num5, width= 30).grid(row=40, column= 45)
 textforreblur = Label(root, text="reblurring factor (recommendation: 0)")
 textforreblur.grid(row=38, column=45)
 
